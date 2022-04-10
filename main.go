@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -277,20 +278,23 @@ func moveDups(sourceBasePath, targetBasePath string) {
 		return
 	}
 
+	targetBasePath = strings.ReplaceAll(targetBasePath, "\\", "/")
+
 	for _,dup := range dups {
-		subPath := dup.fullPath[len(sourceBasePath):]
-		if len(subPath) > 0 {
-			if subPath[0] == '/' || subPath[0] == '\\' {
-				subPath = subPath[1:]
-			}
-		}
+		subPath := strings.ReplaceAll(dup.fullPath[len(sourceBasePath):], "\\", "/")
+		subPath = strings.TrimPrefix(subPath, "/")
 		fmt.Println(subPath)
+
 		targetPath := path.Join(targetBasePath, subPath)
 
-		os.MkdirAll(path.Dir(targetPath), 0755)
-		err := os.Rename(dup.fullPath, targetPath)
-		if err != nil {
-			fmt.Println("  ERROR: ", err.Error())
+		if _, err := os.Stat(targetPath); err == nil {
+			fmt.Printf("  ERROR: Target file already exists: %s\n", targetPath)
+		} else {
+			os.MkdirAll(path.Dir(targetPath), 0755)
+			err := os.Rename(dup.fullPath, targetPath)
+			if err != nil {
+				fmt.Println("  ERROR: ", err.Error())
+			}
 		}
 	}	
 }
