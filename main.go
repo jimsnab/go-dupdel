@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sync"
@@ -37,6 +38,7 @@ func main() {
 		singleCommand,
 		"~",
 		"[--delete]?Delete the duplicates",
+		"[--move <path-base>]?Move the duplicates under base",
 		"[--size:<int-size>]?Minimum size of file to consider (default: 10K bytes)",
 	)
 
@@ -61,7 +63,7 @@ func singleCommand(args cmdline.Values) error {
 
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
-	go statusPrinter(args, stopCh, wg)
+	go statusPrinter(args, currentDirectory, stopCh, wg)
 
 	iterate(currentDirectory)
 	stopCh <- true
@@ -80,21 +82,25 @@ func formatCommas(num int64) string {
 	return str
 }
 
-func statusPrinter(args cmdline.Values, ch chan bool, wg *sync.WaitGroup) {
+func statusPrinter(args cmdline.Values, basePath string, ch chan bool, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <- ch:
-			fmt.Printf("\rFiles: %s  Bytes: %s", formatCommas(files), formatCommas(bytesProcessed))
+			fmt.Fprintf(os.Stderr, "\rFiles: %s  Bytes: %s", formatCommas(files), formatCommas(bytesProcessed))
 			goto end
 
 		case <- time.After(time.Second * 1):
-			fmt.Printf("\rFiles: %s  Bytes: %s", formatCommas(files), formatCommas(bytesProcessed))
+			fmt.Fprintf(os.Stderr, "\rFiles: %s  Bytes: %s", formatCommas(files), formatCommas(bytesProcessed))
 		}
 	}
 
 end:
-	fmt.Printf("\n\n")
-	deleteDups(args["--delete"].(bool))
+	fmt.Fprintf(os.Stderr, "\n\n")
+	if args["--move"].(bool) {
+		moveDups(basePath, args["base"].(string))
+	} else {
+		deleteDups(args["--delete"].(bool))
+	}
 	wg.Done()
 } 
 
@@ -123,7 +129,7 @@ func iterate(basePath string) {
 
 		fi, err := os.Stat(fullPath)
 		if err != nil {
-			fmt.Printf("Can't get stat of %s\n", fullPath)
+			fmt.Fprintf(os.Stderr, "\nCan't get stat of %s\n", fullPath)
 			return nil
 		}
 
@@ -142,7 +148,7 @@ func iterate(basePath string) {
 			if !hasCrc {
 				crc, err := fileCrc(matchingSize)
 				if err != nil {
-					fmt.Printf("Can't get CRC of %s - %s\n", matchingSize.fullPath, err.Error())
+					fmt.Fprintf(os.Stderr, "\nCan't get CRC of %s - %s\n", matchingSize.fullPath, err.Error())
 					return nil
 				}
 				crcTable[crc] = matchingSize
@@ -150,7 +156,7 @@ func iterate(basePath string) {
 			
 			crc, err := fileCrc(thisFile)
 			if err != nil {
-				fmt.Printf("Can't get CRC of %s - %s\n", fullPath, err.Error())
+				fmt.Fprintf(os.Stderr, "\nCan't get CRC of %s - %s\n", fullPath, err.Error())
 				return nil
 			}
 	
@@ -160,7 +166,7 @@ func iterate(basePath string) {
 				if !hasHash {
 					hash, err := fileHash(matchingCrc)
 					if err != nil {
-						fmt.Printf("Can't get SHA hash of %s - %s\n", matchingCrc.fullPath, err.Error())
+						fmt.Fprintf(os.Stderr, "\nCan't get SHA hash of %s - %s\n", matchingCrc.fullPath, err.Error())
 						return nil
 					}
 					hashTable[hash] = matchingCrc
@@ -168,7 +174,7 @@ func iterate(basePath string) {
 
 				hash, err := fileHash(thisFile)
 				if err != nil {
-					fmt.Printf("Can't get SHA hash of %s - %s\n", fullPath, err.Error())
+					fmt.Fprintf(os.Stderr, "\nCan't get SHA hash of %s - %s\n", fullPath, err.Error())
 					return nil
 				}
 
@@ -261,4 +267,30 @@ func deleteDups(delete bool) {
 			}
 		}
 	}
+}
+
+func moveDups(sourceBasePath, targetBasePath string) {
+	fmt.Println("Duplicates")
+
+	if len(dups) == 0 {
+		fmt.Println("  (none)")
+		return
+	}
+
+	for _,dup := range dups {
+		subPath := dup.fullPath[len(sourceBasePath):]
+		if len(subPath) > 0 {
+			if subPath[0] == '/' || subPath[0] == '\\' {
+				subPath = subPath[1:]
+			}
+		}
+		fmt.Println(subPath)
+		targetPath := path.Join(targetBasePath, subPath)
+
+		os.MkdirAll(path.Dir(targetPath), 0755)
+		err := os.Rename(dup.fullPath, targetPath)
+		if err != nil {
+			fmt.Println("  ERROR: ", err.Error())
+		}
+	}	
 }
