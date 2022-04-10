@@ -1,0 +1,13 @@
+github.com/djherbis/atime v1.1.0 h1:rgwVbP/5by8BvvjBNrbh64Qz33idKT3pSnMSJsxhi0g=
+github.com/djherbis/atime v1.1.0/go.mod h1:28OF6Y8s3NQWwacXc5eZTsEsiMzp7LF8MbXE+XJPdBE=
+github.com/jimsnab/go-cmdline v1.0.6 h1:qjvipegdb148KM2sQJ32NJfJQ+iK+jXYDs5Cny6AZUk=
+github.com/jimsnab/go-cmdline v1.0.6/go.mod h1:NITCV9fJqHDMrvAqNRZKl0XtFe9dj0Iab2cRC0XfIcY=
+github.com/jimsnab/go-simpleutils v1.0.13 h1:7Qxfv7xK7YG2mOiBITfrWzOeToezj9XiNSxU/IKSsJA=
+github.com/jimsnab/go-simpleutils v1.0.13/go.mod h1:RudIoMHFP5s+x86U0VOX4Ij3aqDFDf+gxPGor8stRC4=
+github.com/jimsnab/go-testutils v0.0.0-20220125175759-6756cb9c807d h1:k2PVf+f9TpY0Uv3+cTNP5TUOcwjDiSxxdJe3d4qFlHE=
+github.com/jimsnab/go-toolprinter v1.0.10 h1:hFdLJzP49RZO+B+aw5VpNeurD7iiBm6cdL+ywKCFJQo=
+github.com/jimsnab/go-toolprinter v1.0.10/go.mod h1:nbIMPg9h7aQ2TJmL7psUIsceFLqsfXWavoGteIkmQok=
+golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f h1:8w7RhxzTVgUzw/AH/9mUV5q0vMgy40SQRursCcfmkCw=
+golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 h1:JGgROgKl9N8DuW20oFS5gxc+lE67/N3FcwmBPMe7ArY=
+golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
